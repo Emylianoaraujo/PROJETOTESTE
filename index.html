@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Simulador de Taxa de Cartão - Compare as taxas de maquinetas para débito e crédito e tome decisões financeiras mais assertivas.">
+  <link rel="canonical" href="https://www.seudominio.com/simulador-taxa-cartao">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background-color: #5166A6;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 900px;
+      margin: 30px auto;
+    }
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    header h1, header p {
+      color: white;
+      font-weight: bold;
+    }
+    .btn-color {
+      background-color: #A6419F;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .btn-color:hover {
+      background-color: #7E4A8C;
+    }
+    th {
+      background-color: #65BFA6 !important;
+      color: white !important;
+    }
+    .table thead th {
+      background-color: #65BFA6 !important;
+      color: white !important;
+    }
+    #rankingFinal {
+      background-color: #ffffff;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+      display: none;
+    }
+    .ranking-item {
+      background: linear-gradient(135deg, #A6419F 0%, #7E4A8C 100%);
+      color: white;
+      padding: 10px;
+      margin: 5px 0;
+      border-radius: 8px;
+      font-weight: bold;
+      text-align: center;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+      transition: transform 0.2s;
+    }
+    .ranking-item:hover {
+      transform: scale(1.05);
+    }
+    @media (max-width: 768px) {
+      .table-responsive {
+        overflow-x: auto;
+        display: block;
+      }
+    }
+  </style>
+  <title>Simulador de Taxa de Cartão</title>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Simulador de Taxa de Cartão</h1>
+      <p>Compare as taxas de maquinetas para débito e crédito e tome decisões financeiras mais assertivas.</p>
+    </header>
+
+    <section>
+      <label for="maquinetas">Escolha uma maquineta:</label>
+      <select id="maquinetas" class="form-select">
+        <option value="">Selecione</option>
+        <option value="Stone">Stone</option>
+        <option value="Mercado Pago">Mercado Pago</option>
+        <option value="PagSeguro">PagSeguro</option>
+        <option value="Cielo">Cielo</option>
+        <option value="GetNet">GetNet</option>
+        <option value="InfinitePay">InfinitePay</option>
+        <option value="Ton">Ton</option>
+      </select>
+      <button class="btn-color mt-2" id="addMaquineta">Adicionar Maquineta</button>
+    </section>
+
+    <section id="tabelaResultados" class="mt-4 table-responsive" style="display:none;">
+      <h2>Comparação de Taxas</h2>
+      <table class="table table-bordered">
+        <thead>
+          <tr>
+            <th>Maquineta</th>
+            <th>Débito (%)</th>
+            <th>Crédito à Vista (%)</th>
+            <th>2x (%)</th>
+            <th>3x (%)</th>
+            <th>4x (%)</th>
+            <th>5x (%)</th>
+            <th>6x (%)</th>
+            <th>7x (%)</th>
+            <th>8x (%)</th>
+            <th>9x (%)</th>
+            <th>10x (%)</th>
+            <th>11x (%)</th>
+            <th>12x (%)</th>
+            <th>Ação</th>
+          </tr>
+        </thead>
+        <tbody id="resultadoRanking"></tbody>
+      </table>
+    </section>
+
+    <section id="rankingFinal" class="mt-4">
+      <h2>Ranking das Melhores Taxas</h2>
+      <div id="rankingContent"></div>
+    </section>
+  </div>
+
+  <script>
+    document.getElementById('addMaquineta').addEventListener('click', adicionarMaquineta);
+
+    function atualizarSelectMaquinetas() {
+      let selecionadas = new Set([...document.querySelectorAll("#resultadoRanking tr td:first-child")].map(td => td.innerText));
+      document.querySelectorAll("#maquinetas option").forEach(opt => {
+        if (selecionadas.has(opt.value)) opt.style.display = "none";
+        else opt.style.display = "block";
+      });
+    }
+
+    function adicionarMaquineta() {
+      let nome = document.getElementById('maquinetas').value;
+      if (!nome || document.getElementById(`linha_${nome}`)) return;
+
+      let novaLinha = `<tr id="linha_${nome}">
+        <td>${nome}</td>
+        ${Array.from({ length: 13 }, (_, i) => 
+          `<td><input type="number" class="form-control text-center fw-bold" placeholder="%" id="taxa_${nome}_${i}" min="0" max="100" oninput="atualizarRanking()"></td>`
+        ).join('')}
+        <td><button class="btn btn-danger" onclick="removerMaquineta('${nome}')">Excluir</button></td>
+      </tr>`;
+
+      document.getElementById('resultadoRanking').insertAdjacentHTML('beforeend', novaLinha);
+      document.getElementById('tabelaResultados').style.display = 'block';
+      atualizarSelectMaquinetas();
+    }
+
+    function removerMaquineta(nome) {
+      document.getElementById(`linha_${nome}`).remove();
+      atualizarRanking();
+      atualizarSelectMaquinetas();
+    }
+
+    function atualizarRanking() {
+      let melhores = {};
+      document.querySelectorAll("#resultadoRanking tr").forEach(linha => {
+        let colunas = linha.querySelectorAll("td input");
+        colunas.forEach((input, index) => {
+          let taxa = parseFloat(input.value) || 100;
+          if (!melhores[index] || taxa < melhores[index].taxa) {
+            melhores[index] = { taxa, nome: linha.querySelector("td").innerText };
+          }
+        });
+      });
+
+      let labels = ["Débito", "Crédito à Vista", "2x", "3x", "4x", "5x", "6x", "7x", "8x", "9x", "10x", "11x", "12x"];
+
+      let rankingHTML = Object.entries(melhores)
+        .sort((a, b) => a[1].taxa - b[1].taxa)
+        .map(([index, dado]) => `<div class='ranking-item'>${labels[index]}: ${dado.nome} - ${dado.taxa}%</div>`)
+        .join('');
+
+      document.getElementById("rankingContent").innerHTML = rankingHTML;
+      document.getElementById("rankingFinal").style.display = rankingHTML ? "block" : "none";
+    }
+  </script>
+</body>
+</html>
